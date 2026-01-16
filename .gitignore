@@ -16,13 +16,13 @@ yarn-debug.log*
 yarn-error.log*
 /firebase-debug.log
 /firebase-debug.*.log
-.vscode.zip
 
 # IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+.vscode.zip
 
 # Environment variables
 .env
