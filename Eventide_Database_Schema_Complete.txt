@@ -1,0 +1,100 @@
+Eventide Database Schema (Fully Relational)
+1. Core Users & Profiles
+Table: users
+
+Table: user_roles
+
+Table: user_statuses
+
+Table: provider_profiles
+
+Table: provider_types
+
+Table: price_ranges
+
+2. Categories & Services
+Table: categories
+
+Table: provider_categories
+
+Table: price_types
+
+Table: services
+
+3. Portfolio System
+Table: album_visibility
+
+Table: media_types
+
+Table: tags
+
+Table: portfolio_albums
+
+Table: portfolio_items
+
+Table: portfolio_album_tags
+
+Table: portfolio_album_collaborators
+
+4. Event Planning & Management
+Table: event_status
+
+Table: events
+
+Table: booking_status
+
+Table: bookings
+
+5. Contracts
+Table: contract_status
+
+Table: contracts
+
+Table: contract_items
+
+Table: contract_signatures
+
+6. Payments & Installments
+Table: payment_status
+
+Table: payment_methods
+
+Table: currencies
+
+Table: payments
+
+Table: payment_installments
+
+7. Communication & Scheduling
+Table: conversation_types
+
+Table: conversations
+
+Table: conversation_participants
+
+Table: message_types
+
+Table: messages
+
+Table: call_status
+
+Table: call_platforms
+
+Table: video_calls
+
+Table: video_call_participants
+
+Table: calendar_event_types
+
+Table: calendar_events
+
+8. Optional Enhancements (Analytics, AI, Notifications)
+Table: analytics_logs
+
+Table: ai_recommendations
+
+Table: notification_types
+
+Table: notifications
+
+Table: user_activity_logs

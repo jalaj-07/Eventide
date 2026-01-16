@@ -1,0 +1,5 @@
+{
+  "name": "Eventide",
+  "description": "The complete event & marriage planning ecosystem connecting clients, vendors, and planners with AI-driven insights.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"]
+}

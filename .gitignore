@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+/functions/node_modules/
+
+# Build outputs
+dist/
+build/
+*.exe
+*.o
+*.out
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/firebase-debug.log
+/firebase-debug.*.log
+.vscode.zip
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+/functions/.env
+/.env.*
+
+# Firebase
+.firebaserc
+/firebase.json
+*.cache
+hosting/.cache
+/functions/package-lock.json
+/firebase-*.zip
+/.firebase/
+/emulator-ui/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temp files
+tempCodeRunnerFile*
+__pycache__/
+*.pyc

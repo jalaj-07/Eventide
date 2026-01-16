@@ -1,0 +1,12 @@
+{
+  "main": "src/dataconnect-generated/index.cjs.js",
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
+    "firebase": "^12.7.0",
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.2"
+  }
+}
