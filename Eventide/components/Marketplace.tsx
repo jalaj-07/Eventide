@@ -25,6 +25,8 @@ const Marketplace: React.FC = () => {
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [allServices, setAllServices] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<"vendors" | "services">("vendors");
   const [loading, setLoading] = useState(true);
 
   // Filter State
@@ -43,6 +45,12 @@ const Marketplace: React.FC = () => {
       try {
         const vendorList = await Backend.API.getVendors();
         setVendors(vendorList);
+        
+        // Fetch Services
+        if (Backend.API.Services.getAllServices) {
+            const servicesList = await Backend.API.Services.getAllServices();
+            setAllServices(servicesList);
+        }
       } catch (e) {
         console.error("Failed to load vendors", e);
       } finally {
@@ -85,7 +93,19 @@ const Marketplace: React.FC = () => {
     if (selectedCategory !== "All" && v.category !== selectedCategory)
       return false;
     if (selectedPrice && v.priceRange !== selectedPrice) return false;
+    if (selectedPrice && v.priceRange !== selectedPrice) return false;
     return true;
+  });
+
+  const filteredServices = allServices.filter(s => {
+      // Find the vendor for this service to check category
+      const vendor = vendors.find(v => v.id === s.providerId);
+      if (selectedCategory !== "All") {
+          // If we want to filter services by their vendor's category (or if service has category?)
+          // Service doesn't have category in the interface currently, so use Vendor's.
+          if (!vendor || vendor.category !== selectedCategory) return false;
+      }
+      return true;
   });
 
   // Modal Data State
@@ -294,100 +314,186 @@ const Marketplace: React.FC = () => {
             <p className="text-slate-500 dark:text-slate-400">
               Showing{" "}
               <span className="font-bold text-slate-900 dark:text-white">
-                {filteredVendors.length}
+                {viewMode === "vendors" ? filteredVendors.length : filteredServices.length}
               </span>{" "}
-              top rated professionals
+              top rated {viewMode === "vendors" ? "professionals" : "services"}
             </p>
+            
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mr-4">
+                <button 
+                  onClick={() => setViewMode("vendors")}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-bold transition ${viewMode === "vendors" ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white" : "text-slate-500 hover:text-slate-900 dark:hover:text-white"}`}
+                >
+                    Vendors
+                </button>
+                <button 
+                    onClick={() => setViewMode("services")}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-2 ${viewMode === "services" ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white" : "text-slate-500 hover:text-slate-900 dark:hover:text-white"}`}
+                >
+                    Services
+                </button>
+            </div>
+
             <button className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
               Sort by: Recommended <ChevronDown size={16} />
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredVendors.map((vendor, index) => (
-              <div
-                key={vendor.id}
-                onClick={() => setSelectedVendor(vendor)}
-                className="group bg-white dark:bg-slate-900 rounded-3xl p-3 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-fade-in-up cursor-pointer"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="relative h-56 overflow-hidden rounded-2xl">
-                  <img
-                    src={vendor.imageUrl}
-                    alt={vendor.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-slate-800 flex items-center gap-1 shadow-sm">
-                    <Star
-                      size={12}
-                      className="fill-yellow-400 text-yellow-400"
-                    />{" "}
-                    {vendor.rating}
-                  </div>
-                  {vendor.verified && (
-                    <div className="absolute bottom-3 left-3 bg-blue-600/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-white flex items-center gap-1 shadow-sm">
-                      <ShieldCheck size={12} /> Verified Pro
+            {viewMode === "vendors" ? (
+                <>
+                    {filteredVendors.map((vendor, index) => (
+                    <div
+                        key={vendor.id}
+                        onClick={() => setSelectedVendor(vendor)}
+                        className="group bg-white dark:bg-slate-900 rounded-3xl p-3 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-fade-in-up cursor-pointer"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                        <div className="relative h-56 overflow-hidden rounded-2xl">
+                        <img
+                            src={vendor.imageUrl}
+                            alt={vendor.name}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-slate-800 flex items-center gap-1 shadow-sm">
+                            <Star
+                            size={12}
+                            className="fill-yellow-400 text-yellow-400"
+                            />{" "}
+                            {vendor.rating}
+                        </div>
+                        {vendor.verified && (
+                            <div className="absolute bottom-3 left-3 bg-blue-600/90 backdrop-blur px-2 py-1 rounded-lg text-xs font-bold text-white flex items-center gap-1 shadow-sm">
+                            <ShieldCheck size={12} /> Verified Pro
+                            </div>
+                        )}
+                        </div>
+
+                        <div className="p-4">
+                        <div className="flex justify-between items-start mb-1">
+                            <h3 className="font-bold text-xl text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                            {vendor.name}
+                            </h3>
+                        </div>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-4">
+                            {vendor.category} •{" "}
+                            <span className="text-slate-400 dark:text-slate-500">{vendor.priceRange}</span>
+                        </p>
+
+                        <div className="flex gap-2 mb-3">
+                            {(vendor.serviceCount || 0) > 0 && (
+                                <span className="text-xs bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded font-medium">
+                                    {vendor.serviceCount} Services
+                                </span>
+                            )}
+                            {(vendor.eventCount || 0) > 0 && (
+                                <span className="text-xs bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-2 py-1 rounded font-medium">
+                                    {vendor.eventCount} Events
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                            onClick={(e) => handlePortfolioClick(e, vendor)}
+                            className="flex-1 py-2.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition active:scale-95"
+                            >
+                            Portfolio
+                            </button>
+                            <button
+                            onClick={(e) => handleContact(e, vendor.id, vendor.name)}
+                            disabled={
+                                contactedVendors.has(vendor.id) ||
+                                contactingId === vendor.id
+                            }
+                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition shadow-md flex items-center justify-center gap-2 active:scale-95 disabled:scale-100 ${
+                                contactedVendors.has(vendor.id)
+                                ? "bg-green-100 text-green-700 shadow-none cursor-default"
+                                : "bg-slate-900 text-white hover:bg-primary"
+                            }`}
+                            >
+                            {contactingId === vendor.id ? (
+                                <Loader2 size={16} className="animate-spin" />
+                            ) : contactedVendors.has(vendor.id) ? (
+                                <>
+                                <CheckCircle size={16} /> Sent
+                                </>
+                            ) : (
+                                "Contact"
+                            )}
+                            </button>
+                        </div>
+                        </div>
                     </div>
-                  )}
-                </div>
+                    ))}
+                </>
+            ) : (
+                <>
+                    {filteredServices.map((service, index) => {
+                        const vendor = vendors.find(v => v.id === service.providerId);
+                        return (
+                            <div
+                                key={service.id}
+                                className="group bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all duration-300 animate-fade-in-up"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                            >
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                                            {service.title}
+                                        </h3>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            {vendor && (
+                                                <span 
+                                                    onClick={() => setSelectedVendor(vendor)}
+                                                    className="text-xs font-bold text-slate-500 hover:text-primary cursor-pointer flex items-center gap-1"
+                                                >
+                                                    <img src={vendor.imageUrl} className="w-4 h-4 rounded-full" alt="" />
+                                                    {vendor.name}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-lg text-sm font-bold">
+                                        ₹{service.price}
+                                        {service.pricingUnit && service.pricingUnit !== 'fixed' && <span className="text-xs font-normal opacity-75">/{service.pricingUnit}</span>}
+                                    </span>
+                                </div>
+                                
+                                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4 line-clamp-2">
+                                    {service.description}
+                                </p>
 
-                <div className="p-4">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-xl text-slate-900 dark:text-white group-hover:text-primary transition-colors">
-                      {vendor.name}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-4">
-                    {vendor.category} •{" "}
-                    <span className="text-slate-400 dark:text-slate-500">{vendor.priceRange}</span>
-                  </p>
-
-                  <div className="flex gap-2 mb-3">
-                      {(vendor.serviceCount || 0) > 0 && (
-                          <span className="text-xs bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded font-medium">
-                              {vendor.serviceCount} Services
-                          </span>
-                      )}
-                      {(vendor.eventCount || 0) > 0 && (
-                          <span className="text-xs bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-2 py-1 rounded font-medium">
-                              {vendor.eventCount} Events
-                          </span>
-                      )}
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={(e) => handlePortfolioClick(e, vendor)}
-                      className="flex-1 py-2.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition active:scale-95"
-                    >
-                      Portfolio
-                    </button>
-                    <button
-                      onClick={(e) => handleContact(e, vendor.id, vendor.name)}
-                      disabled={
-                        contactedVendors.has(vendor.id) ||
-                        contactingId === vendor.id
-                      }
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition shadow-md flex items-center justify-center gap-2 active:scale-95 disabled:scale-100 ${
-                        contactedVendors.has(vendor.id)
-                          ? "bg-green-100 text-green-700 shadow-none cursor-default"
-                          : "bg-slate-900 text-white hover:bg-primary"
-                      }`}
-                    >
-                      {contactingId === vendor.id ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : contactedVendors.has(vendor.id) ? (
-                        <>
-                          <CheckCircle size={16} /> Sent
-                        </>
-                      ) : (
-                        "Contact"
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                                <button
+                                    onClick={(e) => {
+                                        const vendorName = vendor ? vendor.name : "Vendor";
+                                        handleContact(e, service.id, `${vendorName} about ${service.title}`);
+                                    }}
+                                    disabled={
+                                        contactedVendors.has(service.id) ||
+                                        contactingId === service.id
+                                    }
+                                    className={`w-full py-2.5 rounded-xl text-sm font-bold transition shadow-md flex items-center justify-center gap-2 active:scale-95 disabled:scale-100 ${
+                                        contactedVendors.has(service.id)
+                                        ? "bg-green-100 text-green-700 shadow-none cursor-default"
+                                        : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90"
+                                    }`}
+                                >
+                                   {contactingId === service.id ? (
+                                        <Loader2 size={16} className="animate-spin" />
+                                    ) : contactedVendors.has(service.id) ? (
+                                        <>
+                                            <CheckCircle size={16} /> Inquiry Sent
+                                        </>
+                                    ) : (
+                                        "Inquire Now"
+                                    )}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </>
+            )}
 
             {/* CTA Card */}
             <div className="bg-gradient-to-br from-secondary to-pink-600 rounded-3xl p-8 text-white flex flex-col justify-center items-center text-center relative overflow-hidden group animate-fade-in-up">

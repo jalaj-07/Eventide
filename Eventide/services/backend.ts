@@ -1291,6 +1291,40 @@ export const Backend = {
         }
         return allServices[providerId] || [];
       },
+      getAllServices: async () => {
+        const allServices = getFromDB(DB_KEYS.SERVICES, {});
+        // Fallback: merge with MOCK_SERVICES
+        const mergedServices: any[] = [];
+
+        // 1. Get all unique provider IDs (from keys of allServices + keys of MOCK_SERVICES)
+        const allProviderIds = new Set([
+          ...Object.keys(allServices),
+          ...Object.keys(MOCK_SERVICES)
+        ]);
+
+        allProviderIds.forEach(pid => {
+          const dbSvcs = allServices[pid] || [];
+          const mockSvcs = (MOCK_SERVICES as any)[pid] || [];
+
+          // Deduplicate by ID if needed, or just prefer DB over mock if ID matches?
+          // Simple approach: Use DB list if exists and not empty, else use Mock. 
+          // Better approach for "listing all": Combine them.
+
+          // Let's rely on getServices logic essentially:
+          let svcs = [];
+          if (dbSvcs.length > 0) {
+            svcs = dbSvcs;
+          } else {
+            svcs = mockSvcs;
+          }
+
+          svcs.forEach((s: any) => {
+            mergedServices.push({ ...s, providerId: pid });
+          });
+        });
+
+        return mergedServices;
+      },
       deleteService: async (providerId: string, serviceId: string) => {
         const allServices = getFromDB(DB_KEYS.SERVICES, {});
         const providerServices = allServices[providerId] || [];
